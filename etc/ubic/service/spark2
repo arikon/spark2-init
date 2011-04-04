@@ -1,0 +1,51 @@
+# vim:ft=perl
+use strict;
+use warnings;
+
+use parent qw(Ubic::Multiservice);
+
+use JSON;
+
+use Ubic::Service::Spark2;
+use File::Spec;
+
+my $CONFIG_DIR = '/etc/spark2.d';
+my $LOG_DIR = '/var/log/spark2-init';
+my $PID_DIR = '/var/lib/spark2-init';
+
+my $SPARK_CONF_JSON = 'spark2-conf-json';
+
+sub new {
+    return bless {} => shift;
+}
+
+sub simple_service {
+    my ($self, $name) = @_;
+
+    my $options = {
+        app_name => $name,
+        server_args => { config => "$CONFIG_DIR/$name" },
+        ubic_log => "$LOG_DIR/ubic.$name.log",
+        stdout => "$LOG_DIR/stdout.$name.log",
+        stderr => "$LOG_DIR/stderr.$name.log",
+        pidfile => "$PID_DIR/$name",
+    };
+    my $conf = decode_json `$SPARK_CONF_JSON $CONFIG_DIR/$name`;
+    $options->{user} = $conf->{user} if ($conf->{user});
+    $options->{port} = $conf->{port} if ($conf->{port});
+
+    return Ubic::Service::Spark2->new($options);
+}
+
+sub has_simple_service {
+    my ($self, $name) = @_;
+    return -f "$CONFIG_DIR/$name";
+}
+
+sub service_names {
+    my ($self) = @_;
+    my @configs = glob("$CONFIG_DIR/*");
+    return grep { /^[\w-]+$/ } map { File::Spec->abs2rel($_, $CONFIG_DIR) } @configs;
+}
+
+return __PACKAGE__->new;

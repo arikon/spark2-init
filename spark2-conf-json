@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+if (process.argv.length < 3) {
+    var util = require(process.binding('natives').util ? 'util' : 'sys');
+    util.error('Usage: spark2-conf-json <path/to/conf>\n');
+    process.exit(1);
+}
+
+var path = process.argv[2],
+    conf = require(path);
+
+console.log(JSON.stringify(conf));

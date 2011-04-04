@@ -1,0 +1,18 @@
+# vim: syntax=sh
+_spark2_init()
+{
+    local cur prev
+    COMPREPLY=()
+    cur=${COMP_WORDS[COMP_CWORD]}
+
+    if [[ $COMP_CWORD == 1 ]]; then
+        COMPREPLY=($(compgen -W 'start stop restart reload status' $cur))
+    else
+        COMPREPLY=($(compgen -W "$(ls /etc/spark2.d)" $cur))
+    fi
+
+    return 0;
+}
+
+complete -F _spark2_init /etc/init.d/spark2
+
